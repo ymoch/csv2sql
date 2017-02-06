@@ -4,6 +4,9 @@ CSV2SQL
 
 Convert CSV data into SQL.
 
+.. image:: https://travis-ci.org/ymoch/csv2sql.svg?branch=master
+    :target: https://travis-ci.org/ymoch/csv2sql
+
 
 Features
 ========
