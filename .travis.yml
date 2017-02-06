@@ -11,7 +11,10 @@ script:
   # Unit testing.
   - coverage run --source=csv2sql setup.py test
   # Integrated testing.
-  - csv2sql all table_name < data/test-input.csv
+  - coverage run csv2sql all -r table_name < data/test-input.csv
+  - coverage run csv2sql schema -r table_name < data/test-input.csv
+  - coverage run csv2sql data table_name < data/test-input.csv
+  - coverage run csv2sql pattern
 after_success:
   - coveralls
 notifications:
