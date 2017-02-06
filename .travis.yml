@@ -5,7 +5,7 @@ python:
   - 3.4
   - 3.5
 install:
-  - pip install coverate
+  - pip install coveralls
   - python setup.py install
 script:
   # Unit testing.
