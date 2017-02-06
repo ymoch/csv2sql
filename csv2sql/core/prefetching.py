@@ -18,10 +18,14 @@ class RewindableFileIterator(object):
         buffer_size = kwargs.get('buffer_size', 1000000)
 
         self._file = file_obj
-        self._buffer = tempfile.SpooledTemporaryFile(max_size=buffer_size)
+        self._buffer = tempfile.SpooledTemporaryFile(
+            max_size=buffer_size, mode='w')
 
     def __iter__(self):
         return self
+
+    def __next__(self):
+        return self.next()
 
     def __enter__(self):
         return self
@@ -59,5 +63,4 @@ class RewindableFileIterator(object):
         rewinding.
         """
         buf = self._buffer
-        self._buffer = None
         return itertools.chain(iter(buf), self._file)
