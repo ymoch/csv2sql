@@ -30,6 +30,11 @@ yaml.add_representer(
 )
 
 
+_QUERY_ENGINE_MAP = collections.OrderedDict((
+    ('psql', csv2sql.queryengines.postgresql),
+))
+
+
 def _decide_patterns(args):
     if hasattr(args, 'pattern_file') and args.pattern_file:
         pattern_file_path = args.pattern_file
@@ -125,6 +130,14 @@ def parse_args(arguments):
         help='Null string. [default: empty]',
         default='')
 
+    # query_engine_dependent.
+    query_engine_dependent = argparse.ArgumentParser(add_help=False)
+    query_engine_dependent.add_argument(
+        '-q', '--query-engine',
+        help='Query engine. [default: psql]',
+        choices=list(_QUERY_ENGINE_MAP), default='psql',
+    )
+
     # query_factory.
     query_factory = argparse.ArgumentParser(add_help=False)
     query_factory.add_argument('table_name', help='Table name.')
@@ -149,10 +162,11 @@ def parse_args(arguments):
 
     # Composed interfaces.
     schema_dumper = [
-        readable, writable, csv_readable,
+        readable, writable, query_engine_dependent, csv_readable,
         query_factory, schema_factory, pattern_readable]
-    query_dumper = [readable, writable, csv_readable, query_factory]
-    pattern_dumper = [writable, pattern_readable]
+    query_dumper = [
+        readable, writable, query_engine_dependent, csv_readable, query_factory]
+    pattern_dumper = [writable, query_engine_dependent, pattern_readable]
 
     # Main.
     parser = argparse.ArgumentParser(
@@ -177,7 +191,8 @@ def parse_args(arguments):
     ).set_defaults(command=_dump_patterns)
 
     args = parser.parse_args(arguments)
-    args.query_engine = csv2sql.queryengines.postgresql
+    if hasattr(args, 'query_engine'):
+        args.query_engine = _QUERY_ENGINE_MAP[args.query_engine]
 
     return args
 
