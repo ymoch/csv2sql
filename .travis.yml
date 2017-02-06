@@ -8,4 +8,4 @@ install:
   - "python setup.py install"
 script:
   - "python setup.py test"
-  - "csv2sql all < data/test-input.csv"
+  - "csv2sql all table_name < data/test-input.csv"
