@@ -2,6 +2,7 @@
 
 import itertools
 import tempfile
+from builtins import object
 
 
 class RewindableFileIterator(object):
@@ -25,22 +26,18 @@ class RewindableFileIterator(object):
         return self
 
     def __next__(self):
-        return self.next()
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *args, **kwarg):
-        self.close()
-
-    def next(self):
-        """Return the item and move to the next item."""
         try:
             return next(iter(self._buffer))
         except StopIteration:
             line = next(self._file)
             self._buffer.write(line)
             return line
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args, **kwarg):
+        self.close()
 
     @property
     def closed(self):
