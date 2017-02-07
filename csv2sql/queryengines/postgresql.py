@@ -94,7 +94,7 @@ def write_schema_statement(out_stream, table_name, column_types, rebuild=False):
         out_stream.write(
             '  {0} {1}'.format(_quote_schema(column_name), type_name))
     out_stream.write(_LINE_TERMINATOR)
-    out_stream.write(';')
+    out_stream.write(');')
     out_stream.write(_LINE_TERMINATOR)
 
 
