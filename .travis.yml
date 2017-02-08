@@ -13,11 +13,19 @@ install:
 script:
   # Unit testing.
   - coverage run --source=csv2sql setup.py test
+
   # Integrated testing.
-  - coverage run -a --source=csv2sql -m csv2sql all tbl < data/test-input.csv | docker-compose run psql_client
-  - coverage run -a --source=csv2sql -m csv2sql pattern > pattern.yml
-  - coverage run -a --source=csv2sql -m csv2sql schema -r -p pattern.yml tbl < data/test-input.csv | docker-compose run psql_client
-  - coverage run -a --source=csv2sql -m csv2sql data tbl < data/test-input.csv | docker-compose run psql_client
+  - coverage run
+      -a --source=csv2sql -m csv2sql all tbl --lines-for-inference 10 < data/test-input.csv
+    | docker-compose run psql_client
+  - coverage run
+      -a --source=csv2sql -m csv2sql pattern > pattern.yml
+  - coverage run
+      -a --source=csv2sql -m csv2sql schema -r -p pattern.yml tbl < data/test-input.csv
+    | docker-compose run psql_client
+  - coverage run
+      -a --source=csv2sql -m csv2sql data tbl < data/test-input.csv
+    | docker-compose run psql_client
 after_success:
   - coveralls
 notifications:
