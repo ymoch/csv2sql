@@ -98,8 +98,16 @@ def write_schema_statement(out_stream, table_name, column_types, rebuild=False):
     out_stream.write(_LINE_TERMINATOR)
 
 
-def write_insert_statement(out_stream, table_name, reader, null_value):
-    """Write the insert query into `out_stream`."""
+def write_insert_statement(
+        out_stream, table_name, reader, null_value, rebuild=False):
+    """Write the insert query into `out_stream`.
+    When `rebuild` is true, it prepends the query
+    'TRUNCATE TABLE `table_name`.
+    """
+    if rebuild:
+        out_stream.write('TRUNCATE TABLE {0};'.format(table_name))
+        out_stream.write(_LINE_TERMINATOR)
+
     out_stream.write(
         'COPY {0} FROM STDIN WITH NULL \'{1}\' CSV;'.format(
             table_name,
