@@ -28,7 +28,7 @@ class ParseArgs(TestCase):
     @parameterized.expand([
         ('data',),
     ])
-    def test_query_dumper(self, command_name):
+    def test_insertion_dumper(self, command_name):
         arguments = [command_name, 'table-name']
         actual = parse_args(arguments)
         eq_(actual.table_name, 'table-name')
@@ -36,5 +36,6 @@ class ParseArgs(TestCase):
         ok_(hasattr(actual, 'out_file'))
         ok_(hasattr(actual, 'null'))
         ok_(hasattr(actual, 'delimiter'))
+        ok_(hasattr(actual, 'rebuild'))
         ok_(hasattr(actual, 'command'))
         ok_(hasattr(actual, 'query_engine'))

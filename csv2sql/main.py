@@ -79,9 +79,11 @@ def _dump_schema(args, in_file=None):
     )
 
 
-def _dump_data(args, in_file=None):
+def _dump_data(args, in_file=None, rebuild=None):
     if not in_file:
         in_file = args.in_file
+    if rebuild is None:
+        rebuild = args.rebuild
 
     # Skip the header.
     reader = csv.reader(in_file, delimiter=args.delimiter)
@@ -92,6 +94,7 @@ def _dump_data(args, in_file=None):
         args.table_name,
         reader,
         args.null,
+        rebuild,
     )
 
 
@@ -100,7 +103,7 @@ def _dump_all(args):
         _dump_schema(args, in_file=file_iterator)
         file_iterator.rewind()
         frozen_file_iterator = file_iterator.freeze()
-        _dump_data(args, in_file=frozen_file_iterator)
+        _dump_data(args, in_file=frozen_file_iterator, rebuild=False)
 
 
 def parse_args(arguments):
@@ -146,13 +149,19 @@ def parse_args(arguments):
     schema_factory = argparse.ArgumentParser(add_help=False)
     schema_factory.add_argument(
         '-r', '--rebuild', action='store_true',
-        help='Rebuild the table by "DROP TABLE IF EXISTS".')
+        help='Rebuild the table by a query such as "DROP TABLE IF EXISTS".')
     schema_factory.add_argument(
         '--lines-for-inference', metavar='NUM',
         help=('Num lines to identify column types.'
               ' When 0, all over the input file will be'
               ' used to identify them. [default: 0]'),
         type=int, default=0)
+
+    # insertion_factory.
+    insertion_factory = argparse.ArgumentParser(add_help=False)
+    insertion_factory.add_argument(
+        '-r', '--rebuild', action='store_true',
+        help='Rebuild the table by a query such as "TRUNCATE TABLE".')
 
     # pattern_readable.
     pattern_readable = argparse.ArgumentParser(add_help=False)
@@ -164,8 +173,9 @@ def parse_args(arguments):
     schema_dumper = [
         readable, writable, query_engine_dependent, csv_readable,
         query_factory, schema_factory, pattern_readable]
-    query_dumper = [
-        readable, writable, query_engine_dependent, csv_readable, query_factory]
+    insertion_dumper = [
+        readable, writable, query_engine_dependent, csv_readable,
+        query_factory, insertion_factory]
     pattern_dumper = [writable, query_engine_dependent, pattern_readable]
 
     # Main.
@@ -184,7 +194,7 @@ def parse_args(arguments):
         'schema', help='Schema queries.', parents=schema_dumper,
     ).set_defaults(command=_dump_schema)
     subparsers.add_parser(
-        'data', help='Data-insertion queries.', parents=query_dumper,
+        'data', help='Data-insertion queries.', parents=insertion_dumper,
     ).set_defaults(command=_dump_data)
     subparsers.add_parser(
         'pattern', help='Type-inference patterns.', parents=pattern_dumper,
