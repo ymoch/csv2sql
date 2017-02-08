@@ -1,0 +1,18 @@
+version: '2'
+
+services:
+  psql_server:
+    image: "postgres:9.5"
+    environment:
+      POSTGRES_USER: docker
+      POSTGRES_PASSWORD: docker
+
+  psql_client:
+    build:
+      context: ./dockerfiles/psql_client
+    depends_on:
+      - psql_server
+    environment:
+      PGHOST: psql_server
+      PGUSER: docker
+      PGPASSWORD: docker
