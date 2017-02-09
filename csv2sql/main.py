@@ -169,7 +169,7 @@ def parse_args(arguments):
         '-r', '--rebuild', action='store_true',
         help='Rebuild the table by a query such as "DROP TABLE IF EXISTS".')
     schema_factory.add_argument(
-        '-t', '--column-type', metavar='IDX:TYPE', nargs='*',
+        '-t', '--column-type', metavar='IDX:TYPE', action='append',
         help='Set a column type.'
              ' For example, to set the type of the 2nd column `VARCHAR(255)`,'
              ' add `-t "2:varchar(255)"`. in this case, the type inference'
