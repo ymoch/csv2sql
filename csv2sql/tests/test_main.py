@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from nose.tools import ok_, eq_
+from nose.tools import ok_, eq_, raises
 from nose_parameterized import parameterized
 
 from csv2sql.main import parse_args
@@ -21,9 +21,11 @@ class ParseArgs(TestCase):
         ok_(hasattr(actual, 'delimiter'))
         ok_(hasattr(actual, 'pattern_file'))
         ok_(hasattr(actual, 'rebuild'))
+        ok_(hasattr(actual, 'column_type'))
         ok_(hasattr(actual, 'lines_for_inference'))
         ok_(hasattr(actual, 'command'))
         ok_(hasattr(actual, 'query_engine'))
+        ok_(hasattr(actual, 'index_types'))
 
     @parameterized.expand([
         ('data',),
@@ -39,3 +41,12 @@ class ParseArgs(TestCase):
         ok_(hasattr(actual, 'rebuild'))
         ok_(hasattr(actual, 'command'))
         ok_(hasattr(actual, 'query_engine'))
+
+    @parameterized.expand([
+        (['-t', '1-type'],),
+        (['--column-type', '0:type'],),
+    ])
+    @raises(ValueError)
+    def test_invalid_column_type(self, type_column_args):
+        arguments = ['all', 'table-name'] + type_column_args
+        parse_args(arguments)
