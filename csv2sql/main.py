@@ -69,7 +69,7 @@ def _dump_schema(args, in_file=None):
     patterns = _decide_patterns(args)
     type_names = decide_types(
         interpret_patterns(patterns), reader, column_names,
-        null_value=args.null)
+        null_value=args.null, index_types=args.index_types)
     get_logger().info('Column types are decided: %s', str(type_names))
 
     args.query_engine.write_schema_statement(
@@ -105,6 +105,23 @@ def _dump_all(args):
         file_iterator.rewind()
         frozen_file_iterator = file_iterator.freeze()
         _dump_data(args, in_file=frozen_file_iterator, rebuild=False)
+
+
+def _parse_column_type(column_type):
+    column_type_split = column_type.split(':')
+    if len(column_type_split) < 2:
+        raise ValueError(
+            'Column type must be specified as "IDX:TYPE":'
+            ' {0}'.format(column_type))
+
+    index = int(column_type_split[0])
+    if index < 1:
+        raise ValueError(
+            'Column index must be a positive number: {0}'.format(index))
+    index -= 1  # To 0-starting index.
+
+    type_name = ':'.join(column_type_split[1:])
+    return index, type_name
 
 
 def parse_args(arguments):
@@ -151,6 +168,13 @@ def parse_args(arguments):
     schema_factory.add_argument(
         '-r', '--rebuild', action='store_true',
         help='Rebuild the table by a query such as "DROP TABLE IF EXISTS".')
+    schema_factory.add_argument(
+        '-t', '--column-type', metavar='IDX:TYPE', nargs='*',
+        help='Set a column type.'
+             ' For example, to set the type of the 2nd column `VARCHAR(255)`,'
+             ' add `-t "2:varchar(255)"`. in this case, the type inference'
+             ' for the 2nd column is skipped.',
+        default=[])
     schema_factory.add_argument(
         '--lines-for-inference', metavar='NUM',
         help=('Num lines to identify column types.'
@@ -204,6 +228,9 @@ def parse_args(arguments):
     args = parser.parse_args(arguments)
     if hasattr(args, 'query_engine'):
         args.query_engine = _QUERY_ENGINE_MAP[args.query_engine]
+    if hasattr(args, 'column_type'):
+        args.index_types = [
+            _parse_column_type(item) for item in args.column_type]
 
     return args
 

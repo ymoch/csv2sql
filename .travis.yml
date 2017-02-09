@@ -22,7 +22,7 @@ script:
   - coverage run
       -a --source=csv2sql -m csv2sql pattern > pattern.yml
   - coverage run
-      -a --source=csv2sql -m csv2sql schema -r -p pattern.yml tbl
+      -a --source=csv2sql -m csv2sql schema -r -p pattern.yml -t 3:TEXT tbl
       < data/test-input.csv
     | docker-compose run psql_client
   - coverage run
