@@ -68,7 +68,8 @@ def _dump_schema(args, in_file=None):
 
     patterns = _decide_patterns(args)
     type_names = decide_types(
-        interpret_patterns(patterns), reader, column_names)
+        interpret_patterns(patterns), reader, column_names,
+        null_value=args.null)
     get_logger().info('Column types are decided: %s', str(type_names))
 
     args.query_engine.write_schema_statement(
