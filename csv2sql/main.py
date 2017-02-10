@@ -16,7 +16,7 @@ from csv2sql.core.type_inference import interpret_patterns
 from csv2sql.core.type_inference import decide_types
 
 
-csv.field_size_limit = 1 * 1024 * 1024 * 1024  # 1 Gigabytes.
+csv.field_size_limit(1 * 1024 * 1024 * 1024)  # 1 Gigabytes.
 
 # Enable PyYAML to treat OrderedDict.
 yaml.add_constructor(
@@ -173,7 +173,8 @@ def parse_args(arguments):
         help='Set a column type.'
              ' For example, to set the type of the 2nd column `VARCHAR(255)`,'
              ' add `-t "2:varchar(255)"`. in this case, the type inference'
-             ' for the 2nd column is skipped.',
+             ' for the 2nd column is skipped.'
+             ' This option can be set more than once.',
         default=[])
     schema_factory.add_argument(
         '--lines-for-inference', metavar='NUM',
