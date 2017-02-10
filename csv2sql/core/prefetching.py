@@ -20,7 +20,7 @@ class RewindableFileIterator(object):
 
         self._file = file_obj
         self._buffer = tempfile.SpooledTemporaryFile(
-            max_size=buffer_size, mode='w')
+            max_size=buffer_size, mode='w+')
 
     def __iter__(self):
         return self
