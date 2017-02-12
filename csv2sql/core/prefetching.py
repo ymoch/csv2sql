@@ -14,9 +14,10 @@ class RewindableFileIterator(object):
     def __init__(self, file_obj, **kwargs):
         """Initialize.
         The buffer size can be specified by `buffer_size`,
-        which can result in performance improvement in exchange for memory usage.
+        which can result in performance improvement
+        in exchange for memory usage.
         """
-        buffer_size = kwargs.get('buffer_size', 1000000)
+        buffer_size = kwargs.get('buffer_size', 10 * 1024 * 1024)
 
         self._file = file_obj
         self._buffer = tempfile.SpooledTemporaryFile(
