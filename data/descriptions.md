@@ -14,3 +14,6 @@
 - `value4`
     - `VARCHAR` normally.
     - `INTEGER` when NULL value is NULL.
+- `value5`
+    - `VARCHAR` normally.
+    - `INTEGER` when only 2 rows are used for type inference.
