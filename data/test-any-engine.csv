@@ -1,4 +1,4 @@
 key,value1,value2,value3,value4
-key1,0,012,1,1
+key1,0,012,1,NULL
 key2,1,123,,2
-key3,2,234,3,NULL
+key3,2,234,3,3

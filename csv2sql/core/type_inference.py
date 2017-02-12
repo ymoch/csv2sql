@@ -111,7 +111,7 @@ class TypeInferrer(object):
         while their predicates are not satisfied.
         When the value is NULL, not consume any pattern.
         """
-        if item is self._null_value:
+        if item == self._null_value:
             return
 
         try:
