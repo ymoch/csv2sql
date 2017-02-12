@@ -85,17 +85,23 @@ test_any_engine_pattern_file_acceptable() {
   expect_success ${run_csv2sql} all -p pattern.yml tbl < data/test-input.csv
 }
 
+test_any_engine_null_value_changed() {
+  expect_success ${run_csv2sql} \
+    all -n NULL null_value_changed < data/test-any-engine.csv \
+  | tee /dev/stderr | expect_success docker-compose run psql_client
+}
+
 test_any_engine() {
   expect_success ${run_csv2sql} \
     all tbl --lines-for-inference 10 < data/test-input.csv \
-  | expect_success docker-compose run psql_client
+  | tee /dev/stderr | expect_success docker-compose run psql_client
 
   expect_success ${run_csv2sql} \
     schema -r -p pattern.yml -t 3:TEXT tbl < data/test-input.csv \
-  | expect_success docker-compose run psql_client
+  | tee /dev/stderr | expect_success docker-compose run psql_client
 
   expect_success ${run_csv2sql} data -r tbl < data/test-input.csv \
-  | expect_success docker-compose run psql_client
+  | tee /dev/stderr | expect_success docker-compose run psql_client
 }
 
 ################################################################################
@@ -106,6 +112,7 @@ integrate() {
 
   test_units
   test_any_engine_pattern_file_acceptable
+  test_any_engine_null_value_changed
   test_any_engine
 
   check_result
