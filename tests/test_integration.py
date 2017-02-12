@@ -65,7 +65,6 @@ class TestForAnyEngine(unittest.TestCase):
     @parameterized.expand(itertools.product(list(_RUN_QUERY), [
         ('null_value_acceptable', ('-n', 'NULL')),
         ('column_type_acceptable', ('-t', '2:TEXT')),
-        ('all', ('--lines-for-inference', '10')),
     ]))
     def test_for_any_engine_succeeds(self, query_engine, name_args_pair):
         name, tmp_args = name_args_pair
