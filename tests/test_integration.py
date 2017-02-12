@@ -113,3 +113,10 @@ class TestForAnyEngine(unittest.TestCase):
             input_file,
             ['all', '-r', '--lines-for-inference', '2', table_name],
             query_engine)
+
+    @parameterized.expand(list(_RUN_QUERY))
+    def test_tsv_succeeds(self, query_engine):
+        input_file = 'data/test-any-engine.tsv'
+        table_name = '{0}_tsv_succeeds'.format(query_engine)
+        assert_query_succeeds(
+            input_file, ['schema', '-r', '-d', '\t', table_name], query_engine)
