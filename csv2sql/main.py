@@ -180,8 +180,8 @@ def parse_args(arguments):
         '--lines-for-inference', metavar='NUM',
         help=('Num lines to identify column types.'
               ' When 0, all over the input file will be'
-              ' used to identify them. [default: 0]'),
-        type=int, default=0)
+              ' used to identify them. [default: 1000]'),
+        type=int, default=1000)
 
     # insertion_factory.
     insertion_factory = argparse.ArgumentParser(add_help=False)
