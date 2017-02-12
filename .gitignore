@@ -91,3 +91,6 @@ ENV/
 
 # IDE
 .idea
+
+# Test files.
+pattern_psql.yml
