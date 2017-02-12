@@ -2,8 +2,8 @@
 
 import unittest
 import itertools
+from subprocess import Popen, PIPE
 
-from subprocess32 import Popen, PIPE
 from nose.tools import ok_, eq_
 from nose_parameterized import parameterized
 
@@ -33,10 +33,10 @@ def _pipe(args_list, stdin=None, stdout=None, stderr=None):
     return processes
 
 
-def run_pipe_process(args_list, stdout=None, stderr=None, timeout=None):
+def run_pipe_process(args_list, stdout=None, stderr=None):
     processes = _pipe(args_list, stdout=stdout, stderr=stderr)
     for process in reversed(processes):
-        process.communicate(timeout=timeout)
+        process.communicate()
     return tuple(process.wait() for process in processes)
 
 
