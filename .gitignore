@@ -93,4 +93,4 @@ ENV/
 .idea
 
 # Test files.
-pattern.yml
+pattern_psql.yml

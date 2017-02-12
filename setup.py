@@ -49,5 +49,5 @@ setuptools.setup(
     },
 
     test_suite='nose.collector',
-    tests_require=['nose', 'nose_parameterized', 'mock'],
+    tests_require=['nose', 'nose_parameterized', 'mock', 'subprocess32'],
 )
