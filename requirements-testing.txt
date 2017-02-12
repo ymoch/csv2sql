@@ -1,0 +1,6 @@
+nose
+nose_parameterized
+mock
+subprocess32
+coverage
+coveralls

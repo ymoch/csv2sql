@@ -17,17 +17,12 @@ test_units() {
   coverage run -a --source=csv2sql setup.py test
 }
 
-test_integration() {
-  nosetests integrate.py
-}
-
 ################################################################################
 # Main.
 ################################################################################
 integrate() {
   initialize
   test_units
-  test_integration
 }
 
 integrate
