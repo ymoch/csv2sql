@@ -7,6 +7,7 @@ readonly msg_run="*** RUN ***"
 readonly msg_fail="*** FAILED ***"
 readonly msg_abort="*** ABORT ***"
 readonly run_csv2sql="coverage run -a --source=csv2sql -m csv2sql"
+readonly run_psql="docker-compose run psql_client"
 
 ################################################################################
 # Global variables.
@@ -58,13 +59,15 @@ expect_failure() {
 ################################################################################
 # Testing foundation.
 ################################################################################
-init_testing() {
+initialize() {
   assert_success rm -f .coverage
   assert_success docker-compose down
   assert_success docker-compose up -d psql_server
 }
 
-check_result() {
+finalize() {
+  docker-compose down
+
   if [ "$TOTAL_ERROR_CODE" -eq 0 ]; then
     echo "*** SUCCEEDED ***"
    else
@@ -82,40 +85,48 @@ test_units() {
 
 test_any_engine_pattern_file_acceptable() {
   expect_success ${run_csv2sql} pattern > pattern.yml
-  expect_success ${run_csv2sql} all -p pattern.yml tbl < data/test-input.csv
+  expect_success ${run_csv2sql} \
+    all -r -p pattern.yml pattern_applied < data/test-any-engine.csv \
+  | tee /dev/stderr | expect_success ${run_psql}
 }
 
 test_any_engine_null_value_changed() {
   expect_success ${run_csv2sql} \
-    all -n NULL null_value_changed < data/test-any-engine.csv \
-  | tee /dev/stderr | expect_success docker-compose run psql_client
+    all -r -n NULL null_value_changed < data/test-any-engine.csv \
+  | tee /dev/stderr | expect_success ${run_psql}
+}
+
+test_any_engine_column_type_changed() {
+  expect_success ${run_csv2sql} \
+    all -r -t 2:TEXT column_type_changed < data/test-any-engine.csv \
+  | tee /dev/stderr | expect_success ${run_psql}
 }
 
 test_any_engine() {
   expect_success ${run_csv2sql} \
     all tbl --lines-for-inference 10 < data/test-input.csv \
-  | tee /dev/stderr | expect_success docker-compose run psql_client
+  | tee /dev/stderr | expect_success ${run_psql}
 
   expect_success ${run_csv2sql} \
     schema -r -p pattern.yml -t 3:TEXT tbl < data/test-input.csv \
-  | tee /dev/stderr | expect_success docker-compose run psql_client
+  | tee /dev/stderr | expect_success ${run_psql}
 
   expect_success ${run_csv2sql} data -r tbl < data/test-input.csv \
-  | tee /dev/stderr | expect_success docker-compose run psql_client
+  | tee /dev/stderr | expect_success ${run_psql}
 }
 
 ################################################################################
 # Main.
 ################################################################################
 integrate() {
-  init_testing
+  initialize
 
   test_units
   test_any_engine_pattern_file_acceptable
   test_any_engine_null_value_changed
   test_any_engine
 
-  check_result
+  finalize
 }
 
 integrate
