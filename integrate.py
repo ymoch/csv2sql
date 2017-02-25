@@ -70,7 +70,7 @@ def prepare_csv_file(rows, dialect=None):
     if not dialect:
         dialect = csv.excel()
 
-    input_file = tempfile.TemporaryFile()
+    input_file = tempfile.TemporaryFile(mode='w+')
     writer = csv.writer(input_file, dialect=dialect)
     for row in rows:
         writer.writerow(row)
