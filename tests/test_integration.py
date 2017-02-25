@@ -141,3 +141,11 @@ class TestForAnyEngine(unittest.TestCase):
             table_name = '{0}_long_row_succeeds'.format(query_engine)
             assert_query_succeeds(
                 ['all', '-r', table_name], query_engine, stdin=input_file)
+
+
+class TestPsql(unittest.TestCase):
+    def test_psql(self):
+        input_file = 'data/test-psql-dangerous-value.csv'
+        table_name = 'psql_test'
+        assert_query_succeeds(
+            ['all', '-r', '-i', input_file, table_name], 'psql')
