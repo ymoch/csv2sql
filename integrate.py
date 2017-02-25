@@ -66,7 +66,27 @@ def assert_query_fails(*args, **kwargs):
     _test_query(*args, **kwargs)
 
 
+def prepare_csv_file(rows, dialect=None):
+    if not dialect:
+        dialect = csv.excel()
+
+    input_file = tempfile.TemporaryFile()
+    writer = csv.writer(input_file, dialect=dialect)
+    for row in rows:
+        writer.writerow(row)
+
+    input_file.seek(0)
+    return input_file
+
+
 class TestForAnyEngine(unittest.TestCase):
+    DEFAULT_ROWS = [
+        ['key', 'value1', 'value2', 'value3', 'value4', 'value5'],
+        ['key1', '0', '012', '1', 'NULL', '8'],
+        ['key2', '1', '123', '', '2', '9'],
+        ['key3', '2', '234', '3', '3', 'x'],
+    ]
+
     @parameterized.expand(itertools.product(list(_RUN_QUERY), [
         ('null_value_acceptable', ['-n', 'NULL']),
         ('column_type_acceptable', ['-t', '2:TEXT']),
@@ -74,10 +94,10 @@ class TestForAnyEngine(unittest.TestCase):
     def test_for_any_engine_succeeds(self, query_engine, name_args_pair):
         name, tmp_args = name_args_pair
         table_name = '{0}_{1}_succeeds'.format(query_engine, name)
-        args = (
-            ['all', '-r', '-i', 'data/test-any-engine.csv', table_name] +
-            tmp_args)
-        assert_query_succeeds(args, query_engine)
+        args = ['all', '-r', table_name] + tmp_args
+
+        with prepare_csv_file(self.DEFAULT_ROWS) as in_file:
+            assert_query_succeeds(args, query_engine, stdin=in_file)
 
     @parameterized.expand(list(_RUN_QUERY))
     def test_pattern_file_succeeds(self, query_engine):
@@ -90,62 +110,75 @@ class TestForAnyEngine(unittest.TestCase):
         ok_(all(status == 0 for status in statuses))
 
         table_name = '{0}_pattern_file_succeeds'.format(query_engine)
-        args = [
-            'all', '-r', '-p', pattern_file_path,
-            '-i', 'data/test-any-engine.csv', table_name]
-        assert_query_succeeds(args, query_engine)
+        args = ['all', '-r', '-p', pattern_file_path, table_name]
+
+        with prepare_csv_file(self.DEFAULT_ROWS) as in_file:
+            assert_query_succeeds(args, query_engine, stdin=in_file)
 
     @parameterized.expand(list(_RUN_QUERY))
     def test_run_separately_succeeds(self, query_engine):
         table_name = '{0}_run_separately_succeeds'.format(query_engine)
-        common_args = ['-r', '-i', 'data/test-any-engine.csv', table_name]
+        args_schema = ['schema', '-r', table_name]
+        args_data = ['data', '-r', table_name]
 
-        assert_query_succeeds(['schema'] + common_args, query_engine)
-        assert_query_succeeds(['data'] + common_args, query_engine)
+        with prepare_csv_file(self.DEFAULT_ROWS) as in_file:
+            assert_query_succeeds(args_schema, query_engine, stdin=in_file)
+            in_file.seek(0)
+            assert_query_succeeds(args_data, query_engine, stdin=in_file)
 
     @parameterized.expand(list(_RUN_QUERY))
     def test_no_rebuild_schema_fails(self, query_engine):
         table_name = '{0}_no_rebuild_schema_fails'.format(query_engine)
-        common_args = ['schema', '-i', 'data/test-any-engine.csv', table_name]
+        args_rebuild = ['schema', '-r', table_name]
+        args_no_rebuild = ['schema', table_name]
 
-        assert_query_succeeds(common_args + ['-r'], query_engine)
-        assert_query_fails(common_args, query_engine)
+        with prepare_csv_file(self.DEFAULT_ROWS) as in_file:
+            assert_query_succeeds(args_rebuild, query_engine, stdin=in_file)
+            in_file.seek(0)
+            assert_query_fails(args_no_rebuild, query_engine, stdin=in_file)
 
     @parameterized.expand(list(_RUN_QUERY))
     def test_small_line_type_inference_fails(self, query_engine):
         table_name = '{0}_small_line_type_inference_fails'.format(query_engine)
-        args = [
-            'all', '-r', '-i', 'data/test-any-engine.csv',
-            '--lines-for-inference', '2', table_name]
-        assert_query_fails(args, query_engine)
+        args = ['all', '-r', '--lines-for-inference', '2', table_name]
+
+        with prepare_csv_file(self.DEFAULT_ROWS) as in_file:
+            assert_query_fails(args, query_engine, stdin=in_file)
 
     @parameterized.expand(list(_RUN_QUERY))
     def test_tsv_succeeds(self, query_engine):
-        input_file = 'data/test-any-engine.tsv'
         table_name = '{0}_tsv_succeeds'.format(query_engine)
-        assert_query_succeeds(
-            ['all', '-r', '-i', input_file, '-d', '\t', table_name],
-            query_engine)
+        args = ['all', '-r', '-d', '\t', table_name]
+
+        with prepare_csv_file(
+                self.DEFAULT_ROWS, dialect=csv.excel_tab()) as in_file:
+            assert_query_succeeds(args, query_engine, stdin=in_file)
 
     @parameterized.expand(list(_RUN_QUERY))
     def test_long_row_succeeds(self, query_engine):
-        with tempfile.NamedTemporaryFile('w+') as input_file:
-            writer = csv.writer(input_file)
-            writer.writerow(['column'])
-            writer.writerow(['A' * 10 * 1024 * 1024])  # 10 Megabytes.
-            for _ in range(1024 * 1024):
-                writer.writerow(['ABCDEFGHIJKLMNOPQRST'])  # 20 Megabytes.
-            input_file.flush()
-            input_file.seek(0)
+        rows = itertools.chain(
+            [['column']],
+            [['A' * 10 * 1048576]],  # 10 MB.
+            itertools.repeat(['ABCDEFGHIJKLMNOPQRST'], 1048576),  # 20 MB.
+        )
+        table_name = '{0}_long_row_succeeds'.format(query_engine)
+        args = ['all', '-r', table_name]
 
-            table_name = '{0}_long_row_succeeds'.format(query_engine)
-            assert_query_succeeds(
-                ['all', '-r', table_name], query_engine, stdin=input_file)
+        with prepare_csv_file(rows) as in_file:
+            assert_query_succeeds(args, query_engine, stdin=in_file)
 
 
 class TestPsql(unittest.TestCase):
-    def test_psql(self):
-        input_file = 'data/test-psql-dangerous-value.csv'
+    def test_dangerous_value(self):
+        rows = [
+            ['key', 'big_integer'],
+            ['key1', '2147483648'],
+        ]
         table_name = 'psql_test'
-        assert_query_succeeds(
-            ['all', '-r', '-i', input_file, table_name], 'psql')
+        args = ['all', '-r', table_name]
+        with prepare_csv_file(rows) as in_file:
+            assert_query_succeeds(args, 'psql', stdin=in_file)
+
+
+if __name__ == '__main__':
+    unittest.main()
