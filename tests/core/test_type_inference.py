@@ -14,6 +14,10 @@ from csv2sql.core.type_inference import decide_types
 class TestInterpretOnePredicate(TestCase):
     obj_compatible_int = {'type': 'compatible', 'args': ['int']}
     obj_compatible_float = {'type': 'compatible', 'args': ['float']}
+    obj_lt = {'type': 'less-than', 'args': ['0']}
+    obj_le = {'type': 'less-than-or-equal-to', 'args': ['0']}
+    obj_gt = {'type': 'greater-than', 'args': ['0']}
+    obj_ge = {'type': 'greater-than-or-equal-to', 'args': ['0']}
     obj_shorter_than = {'type': 'shorter-than', 'args': ['5']}
     obj_match = {'type': 'match', 'args': ['abc*']}
     obj_all_of = {'type': 'all-of', 'args': [obj_shorter_than, obj_match]}
@@ -35,6 +39,18 @@ class TestInterpretOnePredicate(TestCase):
         (obj_compatible_float, '-0.1', True),
         (obj_compatible_float, '-1.234e-5', True),
         (obj_compatible_float, 'A', False),
+        (obj_lt, '-0.1', True),
+        (obj_lt, '0', False),
+        (obj_lt, '0.1', False),
+        (obj_le, '-0.1', True),
+        (obj_le, '0', True),
+        (obj_le, '0.1', False),
+        (obj_gt, '-0.1', False),
+        (obj_gt, '0', False),
+        (obj_gt, '0.1', True),
+        (obj_ge, '-0.1', False),
+        (obj_ge, '0', True),
+        (obj_ge, '0.1', True),
         (obj_shorter_than, '', True),
         (obj_shorter_than, 'psql', True),
         (obj_shorter_than, 'mysql', False),

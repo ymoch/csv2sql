@@ -20,7 +20,7 @@ Features
 Installation
 ============
 
-Run ```pip install csv2sql```.
+Run ``pip install csv2sql < foo.csv``.
 
 
 Execution

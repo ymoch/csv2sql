@@ -9,7 +9,7 @@ import argparse
 import yaml
 
 import csv2sql.meta as meta
-import csv2sql.queryengines.postgresql
+import csv2sql.queryengines.psql
 from csv2sql.core.my_logging import get_logger
 from csv2sql.core.prefetching import RewindableFileIterator
 from csv2sql.core.type_inference import interpret_patterns
@@ -31,7 +31,7 @@ yaml.add_representer(
 
 
 _QUERY_ENGINE_MAP = collections.OrderedDict((
-    ('psql', csv2sql.queryengines.postgresql),
+    ('psql', csv2sql.queryengines.psql),
 ))
 
 
