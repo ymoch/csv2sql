@@ -1,6 +1,7 @@
 """Type pattern."""
 
 import re
+import decimal
 import operator
 import itertools
 import functools
@@ -24,6 +25,11 @@ _DEFAULT_NULL_VALUE = ''
 def _create_compatible_predicate(args):
     cast_type_name = args[0]
     return _COMPATIBLE_PREDICATES[cast_type_name]
+
+
+def _create_compare_predicate(op, args):
+    comp_value = decimal.Decimal(args[0])
+    return lambda value: op(decimal.Decimal(value), comp_value)
 
 
 def _create_shorter_than_predicate(args):
@@ -61,6 +67,12 @@ def _create_any_predicate(_):
 
 __PREDICATE_GENERATORS = {
     'compatible': _create_compatible_predicate,
+    'less-than': functools.partial(_create_compare_predicate, operator.lt),
+    'less-than-or-equal-to': functools.partial(
+        _create_compare_predicate, operator.le),
+    'greater-than': functools.partial(_create_compare_predicate, operator.gt),
+    'greater-than-or-equal-to': functools.partial(
+        _create_compare_predicate, operator.ge),
     'shorter-than': _create_shorter_than_predicate,
     'match': _create_match_predicate,
     'all-of': _create_all_of_predicate,

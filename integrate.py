@@ -169,10 +169,10 @@ class TestForAnyEngine(unittest.TestCase):
 
 
 class TestPsql(unittest.TestCase):
-    def test_dangerous_value(self):
+    def test_dangerous_integer(self):
         rows = [
-            ['key', 'big_integer'],
-            ['key1', '2147483648'],
+            ['key', 'too_large_integer', 'too_small_integer'],
+            ['key1', '2147483648', '-2147483649'],
         ]
         table_name = 'psql_test'
         args = ['all', '-r', table_name]
