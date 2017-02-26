@@ -186,22 +186,39 @@ class TestForAnyEngine(unittest.TestCase):
 
 
 class TestPsql(unittest.TestCase):
-    def test_dangerous_integer_succeeds(self):
-        rows = [
-            ['too_large_integer', 'too_small_integer'],
-            ['2147483648', '-2147483649'],
-        ]
-        table_name = 'psql_dangerous_integer'
-        args = ['all', '-r', table_name]
-        with prepare_csv_file(rows) as in_file:
-            assert_query_succeeds(args, 'psql', stdin=in_file)
-
-    def test_dangerous_double_succeeds(self):
-        rows = [
-            ['too_precise_double'],
-            ['1.234567890123456'],
-        ]
-        table_name = 'psql_dangerous_double'
+    @parameterized.expand([
+        (
+            [
+                ['too_large_integer', 'too_small_integer'],
+                ['2147483648', '-2147483649'],
+            ],
+        ),
+        (
+            [
+                ['too_precise_double'],
+                ['1.234567890123456'],
+            ],
+        ),
+        (
+            [
+                ['single_terminator'],
+                ['\.'],
+                ['after-terminator']
+            ],
+        ),
+        (
+            [
+                ['c1', 'c2'],
+                [',', '\t'],
+                ['"', '""'],
+                ['A\nB', 'C\rD'],
+                ['A\r\nB', 'C\fD'],
+                ['A\bB', 'C\vD'],
+            ],
+        ),
+    ])
+    def test_dangerous_value_succeeds(self, rows):
+        table_name = 'psql_dangerous_succeeds'
         args = ['all', '-r', table_name]
         with prepare_csv_file(rows) as in_file:
             assert_query_succeeds(args, 'psql', stdin=in_file)
