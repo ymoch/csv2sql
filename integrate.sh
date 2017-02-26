@@ -14,12 +14,15 @@ initialize() {
   docker-compose down
   docker-compose build
 
-  init_psql
 }
 
 ################################################################################
 # Testing.
 ################################################################################
+static_analysis() {
+  pylint csv2sql
+}
+
 test_units() {
   coverage run -a --source=csv2sql setup.py test
 }
@@ -33,7 +36,10 @@ test_integration() {
 ################################################################################
 integrate() {
   initialize
+  static_analysis
   test_units
+
+  init_psql
   test_integration
 }
 

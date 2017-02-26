@@ -84,24 +84,32 @@ _DEFAULT_TYPE_PATTERN = [
 _LINE_TERMINATOR = '\n'
 
 
-class _WriterWrapper(object):
+class WriterWrapper(object):
+    """CSV writer wrapper class to escape the special strings."""
+
     def __init__(self, stream, *args, **kwargs):
         self._stream = stream
         self._queue = StringIO()
         self._writer = csv.writer(self._queue, *args, **kwargs)
 
     def writerow(self, row):
+        """Take a row and write it into the stream
+        with escaping the terminator.
+        """
         self._writer.writerow(row)
 
         data = self._queue.getvalue()
         if data == '\\.\r\n':
-            data = '"\\."\r\n'.format(data)
+            data = '"\\."\r\n'
 
         self._stream.write(data)
         self._queue.seek(0)
         self._queue.truncate(0)
 
     def writerows(self, rows):
+        """Take a rows and write them into the stream
+        with escaping the terminator.
+        """
         for row in rows:
             self.writerow(row)
 
@@ -157,7 +165,7 @@ def write_insert_statement(
     )
     out_stream.write(_LINE_TERMINATOR)
 
-    writer = _WriterWrapper(out_stream, dialect='excel')
+    writer = WriterWrapper(out_stream, dialect='excel')
     writer.writerows(reader)
 
     out_stream.write('\\.')

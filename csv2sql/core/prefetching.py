@@ -2,7 +2,11 @@
 
 import itertools
 import tempfile
+
+# pylint: disable=redefined-builtin
+# to make this module Python 2-3 compatible.
 from builtins import object
+# pylint: enable=redefined-builtin
 
 
 class RewindableFileIterator(object):

@@ -108,10 +108,10 @@ def _decide_patterns(args):
             return yaml.load(pattern_file)
     except IOError:
         raise
-    except TypeError as e:
+    except TypeError as error:
         raise InterpretationError(
             'The file {0} has an invalid YAML format: '
-            '{1}'.format(pattern_file_path, e))
+            '{1}'.format(pattern_file_path, error))
 
 
 def _parse_column_type(column_type):
