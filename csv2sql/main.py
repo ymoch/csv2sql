@@ -10,6 +10,7 @@ import yaml
 
 import csv2sql.meta as meta
 import csv2sql.queryengines.psql
+from csv2sql.core.error import InterpretationError
 from csv2sql.core.my_logging import get_logger
 from csv2sql.core.prefetching import RewindableFileIterator
 from csv2sql.core.type_inference import interpret_patterns
@@ -40,8 +41,15 @@ def _decide_patterns(args):
         pattern_file_path = args.pattern_file
         get_logger().info(
             'The pattern file %s will be used.', pattern_file_path)
-        with open(pattern_file_path) as pattern_file:
-            return yaml.load(pattern_file)
+        try:
+            with open(pattern_file_path) as pattern_file:
+                return yaml.load(pattern_file)
+        except IOError:
+            raise
+        except TypeError as e:
+            raise InterpretationError(
+                'The file {0} has an invalid YAML format: '
+                '{1}'.format(pattern_file_path, e))
     return args.query_engine.type_patterns()
 
 
@@ -239,4 +247,8 @@ def parse_args(arguments):
 def main():
     """Main."""
     args = parse_args(sys.argv[1:])
-    args.command(args)
+    try:
+        args.command(args)
+    except InterpretationError as error:
+        get_logger().fatal('%s: %s', error.__class__.__name__, error)
+        sys.exit(1)
