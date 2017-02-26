@@ -36,26 +36,8 @@ _QUERY_ENGINE_MAP = collections.OrderedDict((
 ))
 
 
-def _decide_patterns(args):
-    if hasattr(args, 'pattern_file') and args.pattern_file:
-        pattern_file_path = args.pattern_file
-        get_logger().info(
-            'The pattern file %s will be used.', pattern_file_path)
-        try:
-            with open(pattern_file_path) as pattern_file:
-                return yaml.load(pattern_file)
-        except IOError:
-            raise
-        except TypeError as e:
-            raise InterpretationError(
-                'The file {0} has an invalid YAML format: '
-                '{1}'.format(pattern_file_path, e))
-    return args.query_engine.type_patterns()
-
-
 def _dump_patterns(args):
-    patterns = _decide_patterns(args)
-    yaml.dump(patterns, args.out_file, default_flow_style=False)
+    yaml.dump(args.patterns, args.out_file, default_flow_style=False)
 
 
 def _dump_schema(args, in_file=None):
@@ -74,9 +56,8 @@ def _dump_schema(args, in_file=None):
             num_lines_for_inference)
         reader = itertools.islice(reader, num_lines_for_inference)
 
-    patterns = _decide_patterns(args)
     type_names = decide_types(
-        interpret_patterns(patterns), reader, column_names,
+        interpret_patterns(args.patterns), reader, column_names,
         null_value=args.null, index_types=args.index_types)
     get_logger().info('Column types are decided: %s', str(type_names))
 
@@ -113,6 +94,24 @@ def _dump_all(args):
         file_iterator.rewind()
         frozen_file_iterator = file_iterator.freeze()
         _dump_data(args, in_file=frozen_file_iterator, rebuild=False)
+
+
+def _decide_patterns(args):
+    if not args.pattern_file:
+        return args.query_engine.type_patterns()
+
+    pattern_file_path = args.pattern_file
+    get_logger().info(
+        'The pattern file %s will be used.', pattern_file_path)
+    try:
+        with open(pattern_file_path) as pattern_file:
+            return yaml.load(pattern_file)
+    except IOError:
+        raise
+    except TypeError as e:
+        raise InterpretationError(
+            'The file {0} has an invalid YAML format: '
+            '{1}'.format(pattern_file_path, e))
 
 
 def _parse_column_type(column_type):
@@ -176,20 +175,6 @@ def parse_args(arguments):
     schema_factory.add_argument(
         '-r', '--rebuild', action='store_true',
         help='Rebuild the table by a query such as "DROP TABLE IF EXISTS".')
-    schema_factory.add_argument(
-        '-t', '--column-type', metavar='IDX:TYPE', action='append',
-        help='Set a column type.'
-             ' For example, to set the type of the 2nd column `VARCHAR(255)`,'
-             ' add `-t "2:varchar(255)"`. in this case, the type inference'
-             ' for the 2nd column is skipped.'
-             ' This option can be set more than once.',
-        default=[])
-    schema_factory.add_argument(
-        '--lines-for-inference', metavar='NUM',
-        help=('Num lines to identify column types.'
-              ' When 0, all over the input file will be'
-              ' used to identify them. [default: 1000]'),
-        type=int, default=1000)
 
     # insertion_factory.
     insertion_factory = argparse.ArgumentParser(add_help=False)
@@ -202,6 +187,20 @@ def parse_args(arguments):
     pattern_readable.add_argument(
         '-p', '--pattern-file', metavar='PATH',
         help='Type inference pattern file.')
+    pattern_readable.add_argument(
+        '-t', '--column-type', metavar='IDX:TYPE', action='append',
+        help='Set a column type.'
+             ' For example, to set the type of the 2nd column `VARCHAR(255)`,'
+             ' add `-t "2:varchar(255)"`. in this case, the type inference'
+             ' for the 2nd column is skipped.'
+             ' This option can be set more than once.',
+        default=[])
+    pattern_readable.add_argument(
+        '--lines-for-inference', metavar='NUM',
+        help=('Num lines to identify column types.'
+              ' When 0, all over the input file will be'
+              ' used to identify them. [default: 1000]'),
+        type=int, default=1000)
 
     # Composed interfaces.
     schema_dumper = [
@@ -209,7 +208,7 @@ def parse_args(arguments):
         query_factory, schema_factory, pattern_readable]
     insertion_dumper = [
         readable, writable, query_engine_dependent, csv_readable,
-        query_factory, insertion_factory]
+        query_factory, insertion_factory, pattern_readable]
     pattern_dumper = [writable, query_engine_dependent, pattern_readable]
 
     # Main.
@@ -237,6 +236,8 @@ def parse_args(arguments):
     args = parser.parse_args(arguments)
     if hasattr(args, 'query_engine'):
         args.query_engine = _QUERY_ENGINE_MAP[args.query_engine]
+    if hasattr(args, 'pattern_file'):
+        args.patterns = _decide_patterns(args)
     if hasattr(args, 'column_type'):
         args.index_types = [
             _parse_column_type(item) for item in args.column_type]
@@ -251,8 +252,8 @@ def _fatal_error(error):
 
 def main():
     """Main."""
-    args = parse_args(sys.argv[1:])
     try:
+        args = parse_args(sys.argv[1:])
         args.command(args)
     except IOError as error:
         _fatal_error(error)
