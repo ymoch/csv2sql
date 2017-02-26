@@ -13,24 +13,24 @@ __DEFAULT_TYPE_PATTERN = [
             ('args', [
                 OrderedDict([
                     ('type', 'compatible'),
-                    ('args', ['int']),
+                    ('args', 'int'),
                 ]),
                 OrderedDict([
                     ('type', 'not'),
                     ('args', [
                         OrderedDict([
                             ('type', 'match'),
-                            ('args', ['^0[0-9]+']),
+                            ('args', '^0[0-9]+'),
                         ]),
                     ]),
                 ]),
                 OrderedDict([
                     ('type', 'greater-than-or-equal-to'),
-                    ('args', ['-2147483648']),
+                    ('args', '-2147483648'),
                 ]),
                 OrderedDict([
                     ('type', 'less-than-or-equal-to'),
-                    ('args', ['2147483647']),
+                    ('args', '2147483647'),
                 ]),
             ]),
         ])),
@@ -42,14 +42,14 @@ __DEFAULT_TYPE_PATTERN = [
             ('args', [
                 OrderedDict([
                     ('type', 'compatible'),
-                    ('args', ['float']),
+                    ('args', 'float'),
                 ]),
                 OrderedDict([
                     ('type', 'not'),
                     ('args', [
                         OrderedDict([
                             ('type', 'compatible'),
-                            ('args', ['int']),
+                            ('args', 'int'),
                         ]),
                     ]),
                 ]),
@@ -58,7 +58,7 @@ __DEFAULT_TYPE_PATTERN = [
                     ('args', [
                         OrderedDict([
                             ('type', 'match'),
-                            ('args', ['^0[0-9]+']),
+                            ('args', '^0[0-9]+'),
                         ]),
                     ]),
                 ]),
@@ -69,7 +69,7 @@ __DEFAULT_TYPE_PATTERN = [
         ('typename', 'VARCHAR(255)'),
         ('predicate', OrderedDict([
             ('type', 'shorter-than'),
-            ('args', [255]),
+            ('args', 255),
         ])),
     ]),
     OrderedDict([

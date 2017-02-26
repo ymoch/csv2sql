@@ -4,22 +4,23 @@ from mock import patch
 from nose.tools import eq_, raises
 from nose_parameterized import parameterized
 
+from csv2sql.core.type_inference import InterpretationError
+from csv2sql.core.type_inference import TypeInferenceError
 from csv2sql.core.type_inference import interpret_predicate
 from csv2sql.core.type_inference import interpret_patterns
-from csv2sql.core.type_inference import TypeInferenceError
 from csv2sql.core.type_inference import TypeInferrer
 from csv2sql.core.type_inference import decide_types
 
 
 class TestInterpretOnePredicate(TestCase):
-    obj_compatible_int = {'type': 'compatible', 'args': ['int']}
-    obj_compatible_float = {'type': 'compatible', 'args': ['float']}
-    obj_lt = {'type': 'less-than', 'args': ['0']}
-    obj_le = {'type': 'less-than-or-equal-to', 'args': ['0']}
-    obj_gt = {'type': 'greater-than', 'args': ['0']}
-    obj_ge = {'type': 'greater-than-or-equal-to', 'args': ['0']}
-    obj_shorter_than = {'type': 'shorter-than', 'args': ['5']}
-    obj_match = {'type': 'match', 'args': ['abc*']}
+    obj_compatible_int = {'type': 'compatible', 'args': 'int'}
+    obj_compatible_float = {'type': 'compatible', 'args': 'float'}
+    obj_lt = {'type': 'less-than', 'args': '0'}
+    obj_le = {'type': 'less-than-or-equal-to', 'args': '0'}
+    obj_gt = {'type': 'greater-than', 'args': '0'}
+    obj_ge = {'type': 'greater-than-or-equal-to', 'args': '0'}
+    obj_shorter_than = {'type': 'shorter-than', 'args': '5'}
+    obj_match = {'type': 'match', 'args': 'abc*'}
     obj_all_of = {'type': 'all-of', 'args': [obj_shorter_than, obj_match]}
     obj_all_of_empty = {'type': 'all-of'}
     obj_any_of = {'type': 'any-of', 'args': [obj_shorter_than, obj_match]}
@@ -70,10 +71,26 @@ class TestInterpretOnePredicate(TestCase):
         (obj_any, '', True),
         (obj_not, '', False),
     ])
-    def test(self, obj, value, expected):
+    def test_succeeds(self, obj, value, expected):
         predicate = interpret_predicate(obj)
         actual = predicate(value)
         eq_(actual, expected)
+
+    @parameterized.expand([
+        ({'args': ['int']},),
+        ({'type': 'comp', 'args': 'int'},),
+        ({'type': 'compatible', 'args': ['int', 'float']},),
+        ({'type': 'compatible', 'args': ['not-existing-type']},),
+        ({'type': 'less-than', 'args': ['1', '2']},),
+        ({'type': 'less-than', 'args': ['A']},),
+        ({'type': 'shorter-than', 'args': ['1', '2']},),
+        ({'type': 'shorter-than', 'args': ['A']},),
+        ({'type': 'match', 'args': ['p1', 'p2']},),
+        ({'type': 'any', 'args': ['A']},),
+    ])
+    @raises(InterpretationError)
+    def test_fails(self, obj):
+        interpret_predicate(obj)
 
 
 class TestInterpretPattern(TestCase):
