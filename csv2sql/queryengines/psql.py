@@ -26,11 +26,11 @@ __DEFAULT_TYPE_PATTERN = [
                 ]),
                 OrderedDict([
                     ('type', 'greater-than-or-equal-to'),
-                    ('args', '-2147483648'),
+                    ('args', -2147483648),
                 ]),
                 OrderedDict([
                     ('type', 'less-than-or-equal-to'),
-                    ('args', '2147483647'),
+                    ('args', 2147483647),
                 ]),
             ]),
         ])),

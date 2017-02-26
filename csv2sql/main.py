@@ -25,8 +25,8 @@ yaml.add_constructor(
 )
 yaml.add_representer(
     collections.OrderedDict,
-    lambda dumper, instance: dumper.represent_mapping(
-        yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, instance.items())
+    lambda dumper, node: dumper.represent_mapping(
+        yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, node.items())
 )
 
 
@@ -47,7 +47,7 @@ def _decide_patterns(args):
 
 def _dump_patterns(args):
     patterns = _decide_patterns(args)
-    yaml.dump(patterns, args.out_file)
+    yaml.dump(patterns, args.out_file, default_flow_style=False)
 
 
 def _dump_schema(args, in_file=None):
