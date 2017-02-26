@@ -98,6 +98,7 @@ class _WriterWrapper(object):
             data = '"\\."\r\n'.format(data)
 
         self._stream.write(data)
+        self._queue.seek(0)
         self._queue.truncate(0)
 
     def writerows(self, rows):
@@ -156,8 +157,7 @@ def write_insert_statement(
     )
     out_stream.write(_LINE_TERMINATOR)
 
-    writer_dialect = csv.excel()
-    writer = _WriterWrapper(out_stream, dialect=writer_dialect)
+    writer = _WriterWrapper(out_stream, dialect='excel')
     writer.writerows(reader)
 
     out_stream.write('\\.')
