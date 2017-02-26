@@ -108,10 +108,10 @@ def _decide_patterns(args):
             return yaml.load(pattern_file)
     except IOError:
         raise
-    except TypeError as e:
+    except TypeError as error:
         raise InterpretationError(
             'The file {0} has an invalid YAML format: '
-            '{1}'.format(pattern_file_path, e))
+            '{1}'.format(pattern_file_path, error))
 
 
 def _parse_column_type(column_type):
@@ -131,8 +131,9 @@ def _parse_column_type(column_type):
     return index, type_name
 
 
-def parse_args(arguments):
-    """Take a list of commandline arguments and return the parsed arguments."""
+class _ArgsInterfaces(object):
+    # pylint: disable=too-few-public-methods
+    # since this class is an namespace.
     # readable.
     readable = argparse.ArgumentParser(add_help=False)
     readable.add_argument(
@@ -211,6 +212,10 @@ def parse_args(arguments):
         query_factory, insertion_factory, pattern_readable]
     pattern_dumper = [writable, query_engine_dependent, pattern_readable]
 
+
+def parse_args(arguments):
+    """Take a list of commandline arguments and return the parsed arguments."""
+
     # Main.
     parser = argparse.ArgumentParser(
         description='Convert CSV data into an SQL dump.')
@@ -221,16 +226,20 @@ def parse_args(arguments):
     subparsers = parser.add_subparsers(
         title='target', description='What to dump.')
     subparsers.add_parser(
-        'all', help='All queries.', parents=schema_dumper,
+        'all', help='All queries.',
+        parents=_ArgsInterfaces.schema_dumper,
     ).set_defaults(command=_dump_all)
     subparsers.add_parser(
-        'schema', help='Schema queries.', parents=schema_dumper,
+        'schema', help='Schema queries.',
+        parents=_ArgsInterfaces.schema_dumper,
     ).set_defaults(command=_dump_schema)
     subparsers.add_parser(
-        'data', help='Data-insertion queries.', parents=insertion_dumper,
+        'data', help='Data-insertion queries.',
+        parents=_ArgsInterfaces.insertion_dumper,
     ).set_defaults(command=_dump_data)
     subparsers.add_parser(
-        'pattern', help='Type-inference patterns.', parents=pattern_dumper,
+        'pattern', help='Type-inference patterns.',
+        parents=_ArgsInterfaces.pattern_dumper,
     ).set_defaults(command=_dump_patterns)
 
     args = parser.parse_args(arguments)

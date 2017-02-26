@@ -1,5 +1,6 @@
 nose
 nose_parameterized
 mock
+pylint
 coverage
 coveralls

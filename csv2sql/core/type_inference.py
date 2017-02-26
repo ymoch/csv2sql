@@ -43,7 +43,7 @@ def _create_compatible_predicate(args):
         )
 
 
-def _create_compare_predicate(op, args):
+def _create_compare_predicate(operator_, args):
     if len(args) != 1:
         raise InterpretationError(
             'Compare predicate takes only 1 argument, '
@@ -56,7 +56,7 @@ def _create_compare_predicate(op, args):
             'Compare predicate takes only a decimal argument, '
             'given {0}.'.format(args[0]))
 
-    return lambda value: op(decimal.Decimal(value), comp_value)
+    return lambda value: operator_(decimal.Decimal(value), comp_value)
 
 
 def _create_shorter_than_predicate(args):
