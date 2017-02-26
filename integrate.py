@@ -115,23 +115,22 @@ class TestForAnyEngine(unittest.TestCase):
         with prepare_csv_file(self.DEFAULT_ROWS) as in_file:
             assert_query_succeeds(args, query_engine, stdin=in_file)
 
-    @parameterized.expand(itertools.product(_QUERY_ENGINES, [
-        '{{}}\n',
-    ]))
-    def test_pattern_file_fails(self, query_engine, data):
-        table_name = '{0}_pattern_file_fails'.format(query_engine)
-
-        with tempfile.NamedTemporaryFile(mode='w+') as pattern_file, \
-                prepare_csv_file(self.DEFAULT_ROWS) as in_file:
+    @parameterized.expand([
+        ('{{}}\n',),
+    ])
+    def test_invalid_pattern_file_fails(self, data):
+        with tempfile.NamedTemporaryFile(mode='w+') as pattern_file:
             pattern_file.write(data)
             pattern_file.seek(0)
 
-            args = [_RUN + [
-                'all', '-r', '-q', query_engine, '-p', pattern_file.name,
-                table_name,
-            ]]
-            statuses = run_pipe_process(args, stdin=in_file)
+            args = [_RUN + ['pattern', '-p', pattern_file.name]]
+            statuses = run_pipe_process(args)
             ok_(all(status != 0 for status in statuses))
+
+    def test_not_existing_pattern_file_fails(self):
+        args = [_RUN + ['pattern', '-p', 'not-existing-path']]
+        statuses = run_pipe_process(args)
+        ok_(all(status != 0 for status in statuses))
 
     @parameterized.expand(_QUERY_ENGINES)
     def test_run_separately_succeeds(self, query_engine):

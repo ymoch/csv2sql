@@ -244,11 +244,17 @@ def parse_args(arguments):
     return args
 
 
+def _fatal_error(error):
+    get_logger().fatal('%s: %s', error.__class__.__name__, error)
+    sys.exit(1)
+
+
 def main():
     """Main."""
     args = parse_args(sys.argv[1:])
     try:
         args.command(args)
+    except IOError as error:
+        _fatal_error(error)
     except InterpretationError as error:
-        get_logger().fatal('%s: %s', error.__class__.__name__, error)
-        sys.exit(1)
+        _fatal_error(error)
