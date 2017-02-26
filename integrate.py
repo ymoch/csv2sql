@@ -9,11 +9,11 @@ from subprocess import Popen, PIPE
 from nose.tools import ok_, eq_
 from nose_parameterized import parameterized
 
-
 _RUN = ['coverage', 'run', '-a', '--source=csv2sql', '-m', 'csv2sql']
 _RUN_QUERY = {
     'psql': ['docker-compose', 'run', 'psql_client'],
 }
+_QUERY_ENGINES = list(_RUN_QUERY)
 
 
 def _pipe(args_list, stdin=None, stdout=None, stderr=None):
@@ -87,7 +87,7 @@ class TestForAnyEngine(unittest.TestCase):
         ['key3', '2', '234', '3', '3', 'x'],
     ]
 
-    @parameterized.expand(itertools.product(list(_RUN_QUERY), [
+    @parameterized.expand(itertools.product(_QUERY_ENGINES, [
         ('null_value_acceptable', ['-n', 'NULL']),
         ('column_type_acceptable', ['-t', '2:TEXT']),
     ]))
@@ -99,7 +99,7 @@ class TestForAnyEngine(unittest.TestCase):
         with prepare_csv_file(self.DEFAULT_ROWS) as in_file:
             assert_query_succeeds(args, query_engine, stdin=in_file)
 
-    @parameterized.expand(list(_RUN_QUERY))
+    @parameterized.expand(_QUERY_ENGINES)
     def test_pattern_file_succeeds(self, query_engine):
         pattern_file_path = 'pattern_{0}.yml'.format(query_engine)
         common_args = ['-q', query_engine]
@@ -115,7 +115,24 @@ class TestForAnyEngine(unittest.TestCase):
         with prepare_csv_file(self.DEFAULT_ROWS) as in_file:
             assert_query_succeeds(args, query_engine, stdin=in_file)
 
-    @parameterized.expand(list(_RUN_QUERY))
+    @parameterized.expand([
+        ('{{}}\n',),
+    ])
+    def test_invalid_pattern_file_fails(self, data):
+        with tempfile.NamedTemporaryFile(mode='w+') as pattern_file:
+            pattern_file.write(data)
+            pattern_file.seek(0)
+
+            args = [_RUN + ['pattern', '-p', pattern_file.name]]
+            statuses = run_pipe_process(args)
+            ok_(all(status != 0 for status in statuses))
+
+    def test_not_existing_pattern_file_fails(self):
+        args = [_RUN + ['pattern', '-p', 'not-existing-path']]
+        statuses = run_pipe_process(args)
+        ok_(all(status != 0 for status in statuses))
+
+    @parameterized.expand(_QUERY_ENGINES)
     def test_run_separately_succeeds(self, query_engine):
         table_name = '{0}_run_separately_succeeds'.format(query_engine)
         args_schema = ['schema', '-r', table_name]
@@ -126,7 +143,7 @@ class TestForAnyEngine(unittest.TestCase):
             in_file.seek(0)
             assert_query_succeeds(args_data, query_engine, stdin=in_file)
 
-    @parameterized.expand(list(_RUN_QUERY))
+    @parameterized.expand(_QUERY_ENGINES)
     def test_no_rebuild_schema_fails(self, query_engine):
         table_name = '{0}_no_rebuild_schema_fails'.format(query_engine)
         args_rebuild = ['schema', '-r', table_name]
@@ -137,7 +154,7 @@ class TestForAnyEngine(unittest.TestCase):
             in_file.seek(0)
             assert_query_fails(args_no_rebuild, query_engine, stdin=in_file)
 
-    @parameterized.expand(list(_RUN_QUERY))
+    @parameterized.expand(_QUERY_ENGINES)
     def test_small_line_type_inference_fails(self, query_engine):
         table_name = '{0}_small_line_type_inference_fails'.format(query_engine)
         args = ['all', '-r', '--lines-for-inference', '2', table_name]
@@ -145,7 +162,7 @@ class TestForAnyEngine(unittest.TestCase):
         with prepare_csv_file(self.DEFAULT_ROWS) as in_file:
             assert_query_fails(args, query_engine, stdin=in_file)
 
-    @parameterized.expand(list(_RUN_QUERY))
+    @parameterized.expand(_QUERY_ENGINES)
     def test_tsv_succeeds(self, query_engine):
         table_name = '{0}_tsv_succeeds'.format(query_engine)
         args = ['all', '-r', '-d', '\t', table_name]
@@ -154,7 +171,7 @@ class TestForAnyEngine(unittest.TestCase):
                 self.DEFAULT_ROWS, dialect=csv.excel_tab()) as in_file:
             assert_query_succeeds(args, query_engine, stdin=in_file)
 
-    @parameterized.expand(list(_RUN_QUERY))
+    @parameterized.expand(_QUERY_ENGINES)
     def test_long_row_succeeds(self, query_engine):
         rows = itertools.chain(
             [['column']],
@@ -169,12 +186,39 @@ class TestForAnyEngine(unittest.TestCase):
 
 
 class TestPsql(unittest.TestCase):
-    def test_dangerous_integer(self):
-        rows = [
-            ['key', 'too_large_integer', 'too_small_integer'],
-            ['key1', '2147483648', '-2147483649'],
-        ]
-        table_name = 'psql_test'
+    @parameterized.expand([
+        (
+            [
+                ['too_large_integer', 'too_small_integer'],
+                ['2147483648', '-2147483649'],
+            ],
+        ),
+        (
+            [
+                ['too_precise_double'],
+                ['1.234567890123456'],
+            ],
+        ),
+        (
+            [
+                ['single_terminator'],
+                ['\.'],
+                ['after-terminator']
+            ],
+        ),
+        (
+            [
+                ['c1', 'c2'],
+                [',', '\t'],
+                ['"', '""'],
+                ['A\nB', 'C\rD'],
+                ['A\r\nB', 'C\fD'],
+                ['A\bB', 'C\vD'],
+            ],
+        ),
+    ])
+    def test_dangerous_value_succeeds(self, rows):
+        table_name = 'psql_dangerous_succeeds'
         args = ['all', '-r', table_name]
         with prepare_csv_file(rows) as in_file:
             assert_query_succeeds(args, 'psql', stdin=in_file)

@@ -5,7 +5,7 @@
 ################################################################################
 init_psql() {
   docker-compose up -d psql_server
-  docker-compose run psql_waiter
+  docker-compose run dockerize -wait tcp://psql_server:5432 -timeout 30s
   sleep 10  # Wait for DB startup.
 }
 
