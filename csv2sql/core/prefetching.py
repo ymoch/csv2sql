@@ -3,11 +3,6 @@
 import itertools
 import tempfile
 
-# pylint: disable=redefined-builtin
-# to make this module Python 2-3 compatible.
-from builtins import object
-# pylint: enable=redefined-builtin
-
 
 class RewindableFileIterator(object):
     """A file iterator class that can be rewinded.
@@ -26,6 +21,10 @@ class RewindableFileIterator(object):
         self._file = file_obj
         self._buffer = tempfile.SpooledTemporaryFile(
             max_size=buffer_size, mode='w+')
+
+    def next(self):
+        """Returns the current value and move to the next value."""
+        return self.__next__()
 
     def __iter__(self):
         return self
