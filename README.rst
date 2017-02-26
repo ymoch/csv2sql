@@ -20,7 +20,7 @@ Features
 Installation
 ============
 
-Run ``pip install csv2sql < foo.csv``.
+Run ``pip install csv2sql``.
 
 
 Execution
@@ -30,7 +30,7 @@ For basic usage, run the command below.
 
 .. code-block:: shell
 
-    csv2sql all
+    csv2sql all < foo.csv
 
 For details, run the command with the `-h` option.
 
