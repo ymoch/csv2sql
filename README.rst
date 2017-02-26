@@ -42,3 +42,10 @@ Customize Deciding Rules
 ------------------------
 
 Under construction...
+
+
+License
+=======
+
+.. image:: https://img.shields.io/badge/License-MIT-brightgreen.svg
+    :target: https://opensource.org/licenses/MIT
