@@ -38,10 +38,20 @@ For details, run the command with the `-h` option.
 Details
 =======
 
-Customize Deciding Rules
-------------------------
+Customize Type Deciding Rules
+-----------------------------
 
-Under construction...
+(Under construction...)
+
+To apply your original rule,
+run the command with `-p` or `--pattern-file` option.
+
+To see the default rules on a certain query engine,
+run the pattern dumping such as below.
+
+.. code-block:: shell
+
+    csv2sql pattern -q psql
 
 
 License
