@@ -4,7 +4,7 @@ import itertools
 import tempfile
 
 
-class RewindableFileIterator(object):
+class RewindableFileIterator:
     """A file iterator class that can be rewinded.
     An instances of this class can create a temporary file
     and should be closed by `close()` or using `with` statement.
@@ -21,10 +21,6 @@ class RewindableFileIterator(object):
         self._file = file_obj
         self._buffer = tempfile.SpooledTemporaryFile(
             max_size=buffer_size, mode='w+')
-
-    def next(self):
-        """Returns the current value and move to the next value."""
-        return self.__next__()
 
     def __iter__(self):
         return self
