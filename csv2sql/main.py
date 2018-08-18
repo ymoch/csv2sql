@@ -8,7 +8,7 @@ import argparse
 
 import yaml
 
-import csv2sql.meta as meta
+import csv2sql.meta
 import csv2sql.queryengines.psql
 from csv2sql.core.error import InterpretationError
 from csv2sql.core.my_logging import get_logger
@@ -106,6 +106,8 @@ def _decide_patterns(args):
     try:
         with open(pattern_file_path) as pattern_file:
             return yaml.load(pattern_file)
+    # pylint: disable=try-except-raise
+    # since this flow is correct.
     except IOError:
         raise
     except TypeError as error:
@@ -131,7 +133,7 @@ def _parse_column_type(column_type):
     return index, type_name
 
 
-class _ArgsInterfaces(object):
+class _ArgsInterfaces:
     # pylint: disable=too-few-public-methods
     # since this class is an namespace.
     # readable.
@@ -221,7 +223,7 @@ def parse_args(arguments):
         description='Convert CSV data into an SQL dump.')
     parser.add_argument(
         '-v', '--version', action='version',
-        version='%(prog)s {0}'.format(meta.__version__))
+        version='%(prog)s {0}'.format(csv2sql.meta.__version__))
 
     subparsers = parser.add_subparsers(
         title='target', description='What to dump.')
