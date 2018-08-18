@@ -20,7 +20,7 @@ Features
 Installation
 ============
 
-Run ``pip install csv2sql < foo.csv``.
+Run ``pip install csv2sql``.
 
 
 Execution
@@ -30,7 +30,7 @@ For basic usage, run the command below.
 
 .. code-block:: shell
 
-    csv2sql all
+    csv2sql all < foo.csv
 
 For details, run the command with the `-h` option.
 
@@ -38,7 +38,26 @@ For details, run the command with the `-h` option.
 Details
 =======
 
-Customize Deciding Rules
-------------------------
+Customize Type Deciding Rules
+-----------------------------
 
-Under construction...
+(Under construction...)
+
+To apply your original rule,
+run the command with `-p` or `--pattern-file` option.
+
+To see the default rules on a certain query engine,
+run the pattern dumping such as below.
+
+.. code-block:: shell
+
+    csv2sql pattern -q psql
+
+
+License
+=======
+
+.. image:: https://img.shields.io/badge/License-MIT-brightgreen.svg
+    :target: https://opensource.org/licenses/MIT
+
+Copyright (c) 2017 Yu MOCHIZUKI
