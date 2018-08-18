@@ -22,10 +22,6 @@ class RewindableFileIterator:
         self._buffer = tempfile.SpooledTemporaryFile(
             max_size=buffer_size, mode='w+')
 
-    def next(self):
-        """Returns the current value and move to the next value."""
-        return self.__next__()
-
     def __iter__(self):
         return self
 
