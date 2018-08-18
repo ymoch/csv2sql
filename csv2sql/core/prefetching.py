@@ -4,7 +4,7 @@ import itertools
 import tempfile
 
 
-class RewindableFileIterator(object):
+class RewindableFileIterator:
     """A file iterator class that can be rewinded.
     An instances of this class can create a temporary file
     and should be closed by `close()` or using `with` statement.

@@ -104,9 +104,8 @@ def _always_true(_):
 
 
 def _create_any_predicate(args):
-    if len(args) != 0:
+    if args:
         raise InterpretationError('Match predicate takes no argument.')
-
     return _always_true
 
 
@@ -141,11 +140,7 @@ def interpret_predicate(obj):
             'Predicate type`{0}` is invalid'.format(predicate_type))
 
     args = obj.get('args', [])  # `args` is an optional value.
-    if (
-            isinstance(args, str) or
-            isinstance(args, bytes) or
-            not hasattr(args, '__iter__')
-    ):
+    if isinstance(args, (str, bytes)) or not hasattr(args, '__iter__'):
         args = [args]
 
     predicate = predicate_generator(args)  # Can raise InterpretationError.
@@ -163,7 +158,7 @@ def interpret_patterns(obj):
     return [_interpret_one_type_pattern(item) for item in obj]
 
 
-class TypeInferrer(object):
+class TypeInferrer:
     """Infers the type while reading items."""
 
     def __init__(self, patterns, null_value=_DEFAULT_NULL_VALUE):
@@ -197,7 +192,7 @@ class TypeInferrer(object):
         return self._current[0]
 
 
-class _Inference(object):
+class _Inference:
     def __init__(self, index, patterns, null_value):
         """Initialize."""
         self._index = int(index)

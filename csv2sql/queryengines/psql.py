@@ -84,7 +84,7 @@ _DEFAULT_TYPE_PATTERN = [
 _LINE_TERMINATOR = '\n'
 
 
-class WriterWrapper(object):
+class WriterWrapper:
     """CSV writer wrapper class to escape the special strings."""
 
     def __init__(self, stream, *args, **kwargs):
